@@ -9,8 +9,8 @@ TODO:
   - [x] Parser
 - [x] Base automaton generator
 - [x] ε-NFA
-- [ ] NFA
-- [ ] DFA
+- [x] NFA
+- [x] DFA
 - [ ] DFA-Minimization
 - [ ] R.E Language
 - [ ] Visualization
