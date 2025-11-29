@@ -2,10 +2,10 @@
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
     Char(char),
-    Plus,      // +
-    Star,      // *
-    LParen,    // (
-    RParen,    // )
+    Plus,   // +
+    Star,   // *
+    LParen, // (
+    RParen, // )
 }
 
 pub fn tokenize(input: &str) -> Vec<Token> {
@@ -29,4 +29,50 @@ pub fn tokenize(input: &str) -> Vec<Token> {
     }
 
     tokens
+}
+
+/*
+* =====================
+*   CORRECTNESS TESTS
+* =====================
+*/
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_simple_literals() {
+        let t = tokenize("abc");
+        assert_eq!(
+            t,
+            vec![Token::Char('a'), Token::Char('b'), Token::Char('c'),]
+        );
+    }
+
+    #[test]
+    fn test_operators() {
+        let t = tokenize("a+b*");
+        assert_eq!(
+            t,
+            vec![Token::Char('a'), Token::Plus, Token::Char('b'), Token::Star,]
+        );
+    }
+
+    #[test]
+    fn test_parens() {
+        let t = tokenize("(a+b)*c");
+        assert_eq!(
+            t,
+            vec![
+                Token::LParen,
+                Token::Char('a'),
+                Token::Plus,
+                Token::Char('b'),
+                Token::RParen,
+                Token::Star,
+                Token::Char('c'),
+            ]
+        );
+    }
 }

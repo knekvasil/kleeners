@@ -1,12 +1,14 @@
 // main.rs
-mod types;
-mod utils;
+pub mod nfa;
+pub mod regex;
+pub mod types;
+pub mod utils;
 
 use types::Symbol;
 use utils::graph_builder::GraphBuilder;
 
 fn main() {
-    println!("--- Running Tests ---");
+    println!("--- Running Playground ---");
 
     let mut gb = GraphBuilder::new();
 
