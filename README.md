@@ -8,7 +8,8 @@ TODO:
   - [x] Tokenizer
   - [x] Parser
 - [x] Base automaton generator
-- [x] ε-DFA
+- [x] ε-NFA
+- [ ] NFA
 - [ ] DFA
 - [ ] DFA-Minimization
 - [ ] R.E Language
