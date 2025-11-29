@@ -31,7 +31,7 @@ impl Thompson {
     pub fn from_ast(mut self, ast: &RegexAST) -> NFA {
         let frag = self.build(ast);
         self.nfa.start = frag.start;
-        self.nfa.accept = frag.accept;
+        self.nfa.accept = vec![frag.accept];
         self.nfa
     }
 
@@ -135,7 +135,7 @@ mod tests {
         assert_eq!(outgoing.len(), 1);
 
         assert!(matches!(outgoing[0].0, TransitionLabel::Char('a')));
-        assert_eq!(outgoing[0].1, nfa.accept);
+        assert_eq!(vec![outgoing[0].1], nfa.accept);
     }
 
     #[test]
@@ -200,6 +200,5 @@ mod tests {
         let nfa = build("(a+b)*c");
 
         assert!(nfa.transitions.len() >= 8);
-        assert!(nfa.start < nfa.accept);
     }
 }

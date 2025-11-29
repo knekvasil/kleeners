@@ -13,7 +13,7 @@ pub enum TransitionLabel {
 #[derive(Debug, Clone)]
 pub struct NFA {
     pub start: StateID,
-    pub accept: StateID,
+    pub accept: Vec<StateID>,
     pub transitions: HashMap<StateID, Vec<(TransitionLabel, StateID)>>,
 }
 
@@ -21,7 +21,7 @@ impl NFA {
     pub fn new() -> Self {
         Self {
             start: 0,
-            accept: 0,
+            accept: vec![],
             transitions: HashMap::new(),
         }
     }
