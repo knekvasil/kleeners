@@ -11,6 +11,6 @@ TODO:
 - [x] ε-NFA
 - [x] NFA
 - [x] DFA
-- [ ] DFA-Minimization
+- [x] DFA-Minimization
 - [ ] R.E Language
 - [ ] Visualization
