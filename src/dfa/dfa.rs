@@ -9,8 +9,8 @@ pub struct DFA {
 }
 
 pub fn nfa_to_dfa(nfa: &NFA) -> DFA {
-    // Collect all symbols in the NFA
-    let mut symbols = HashSet::new();
+    // Collect all symbols in the NFA w/ BTreeSet
+    let mut symbols = BTreeSet::new();
     for edges in nfa.transitions.values() {
         for (label, _) in edges {
             if let TransitionLabel::Char(c) = label {

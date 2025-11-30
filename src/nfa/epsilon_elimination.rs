@@ -72,7 +72,12 @@ pub fn move_on_char(nfa: &NFA, states: &HashSet<StateID>, c: char) -> HashSet<St
 /// Returns an NFA whose `accept` field is a Vec<StateID> containing all accepting states.
 pub fn remove_epsilon(nfa: &NFA) -> NFA {
     // Precompute closures for all states present in the transition map.
-    let all_states: HashSet<StateID> = nfa.transitions.keys().copied().collect();
+    let mut all_states: HashSet<StateID> = nfa.transitions.keys().copied().collect();
+    for edges in nfa.transitions.values() {
+        for &(_, to) in edges {
+            all_states.insert(to);
+        }
+    }
 
     let mut closures: HashMap<StateID, HashSet<StateID>> = HashMap::with_capacity(all_states.len());
     for &state in &all_states {
