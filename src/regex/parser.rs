@@ -1,6 +1,6 @@
 // regex/parser.rs
 use super::ast::RegexAST;
-use super::tokenizer::Token;
+use super::tokenizer::{tokenize, Token};
 
 #[derive(Debug)]
 pub enum ParseError {
@@ -99,6 +99,26 @@ impl Parser {
             None => Err(ParseError::UnexpectedEnd),
         }
     }
+}
+
+/*
+* =====================
+*   HELPER FUNCTIONS
+* =====================
+*/
+
+pub fn parse_language(input: &str) -> Result<RegexAST, ParseError> {
+    let tokens = tokenize(input);
+    let mut parser = Parser::new(tokens);
+
+    let ast = parser.parse_expr()?;
+
+    // Optional: ensure entire input was consumed
+    if parser.peek().is_some() {
+        return Err(ParseError::UnexpectedToken(parser.peek().unwrap().clone()));
+    }
+
+    Ok(ast)
 }
 
 /*

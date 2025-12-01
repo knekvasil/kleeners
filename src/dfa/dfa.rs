@@ -8,6 +8,22 @@ pub struct DFA {
     pub transitions: HashMap<usize, HashMap<char, usize>>,
 }
 
+impl DFA {
+    // Run the DFA on an input string.
+    pub fn accepts(&self, input: &str) -> bool {
+        let mut state = self.start;
+
+        for ch in input.chars() {
+            match self.transitions.get(&state).and_then(|m| m.get(&ch)) {
+                Some(&next) => state = next,
+                None => return false,
+            }
+        }
+
+        self.accepts.contains(&state)
+    }
+}
+
 pub fn nfa_to_dfa(nfa: &NFA) -> DFA {
     // Collect all symbols in the NFA w/ BTreeSet
     let mut symbols = BTreeSet::new();

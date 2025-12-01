@@ -109,6 +109,16 @@ impl Thompson {
 
 /*
 * =====================
+*   HELPER FUNCTIONS
+* =====================
+*/
+
+pub fn enfa_from_ast(ast: &RegexAST) -> NFA {
+    Thompson::new().from_ast(ast)
+}
+
+/*
+* =====================
 *   CORRECTNESS TESTS
 * =====================
 */
