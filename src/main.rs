@@ -1,6 +1,7 @@
 // main.rs
 pub mod dfa;
 pub mod nfa;
+pub mod pipeline;
 pub mod regex;
 pub mod types;
 pub mod utils;
