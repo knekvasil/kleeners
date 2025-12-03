@@ -2,6 +2,7 @@
 use crate::nfa::nfa::{StateID, TransitionLabel, NFA};
 use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
 
+#[derive(Debug)]
 pub struct DFA {
     pub start: usize,
     pub accepts: HashSet<usize>,
