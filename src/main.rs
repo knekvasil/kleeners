@@ -6,22 +6,39 @@ pub mod regex;
 pub mod types;
 pub mod utils;
 
-use types::Symbol;
-use utils::graph_builder::GraphBuilder;
+use crate::pipeline::tests::full_pipeline;
+use crate::utils::dot::{dfa_to_dot, nfa_to_dot};
 
 fn main() {
-    println!("--- Running Playground ---");
+    let test_lang = "a*";
 
-    let mut gb = GraphBuilder::new();
+    println!("--- Pipeline Language: '{}' ---", test_lang);
 
-    let s = gb.new_state();
-    let e = gb.new_state();
+    match full_pipeline("a*") {
+        Ok(out) => {
+            println!("ε-NFA:");
+            // println!("{:#?}", out.enfa);
+            println!("DOT for ε-NFA:\n{}", nfa_to_dot(&out.enfa));
 
-    gb.add_transition(s, e, Symbol::Char('a'));
-    gb.add_accept(e);
+            println!("\nNFA (ε removed):");
+            // println!("{:#?}", out.nfa);
+            println!("DOT for NFA:\n{}", nfa_to_dot(&out.nfa));
 
-    let automaton = gb.build(s);
+            println!("\nDFA:");
+            // println!("{:#?}", out.dfa);
+            println!("DOT for DFA:\n{}", dfa_to_dot(&out.dfa));
 
-    println!("--- Constructed Automaton ---");
-    println!("{:#?}", automaton);
+            println!("\nMinimized DFA:");
+            // println!("{:#?}", out.mindfa);
+            println!("DOT for minimized DFA:\n{}", dfa_to_dot(&out.mindfa));
+
+            println!("\nAcceptance checks:");
+            for s in ["", "a", "aa", "b", "ab"] {
+                println!("  {:>2?}: {}", s, out.mindfa.accepts(s));
+            }
+        }
+        Err(e) => {
+            eprintln!("Error: {}", e);
+        }
+    }
 }
