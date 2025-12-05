@@ -68,22 +68,9 @@ pub fn move_on_char(nfa: &NFA, states: &HashSet<StateID>, c: char) -> HashSet<St
     res
 }
 
-/// Remove epsilon transitions from an ε-NFA producing an equivalent NFA with only Char transitions.
-/// Returns an NFA whose `accept` field is a Vec<StateID> containing all accepting states.
+/// Remove epsilon transitions using subset construction approach.
+/// Creates minimal NFA by treating epsilon-closures as state identities.
 pub fn remove_epsilon(nfa: &NFA) -> NFA {
-    // Precompute closures for all states present in the transition map.
-    let mut all_states: HashSet<StateID> = nfa.transitions.keys().copied().collect();
-    for edges in nfa.transitions.values() {
-        for &(_, to) in edges {
-            all_states.insert(to);
-        }
-    }
-
-    let mut closures: HashMap<StateID, HashSet<StateID>> = HashMap::with_capacity(all_states.len());
-    for &state in &all_states {
-        closures.insert(state, epsilon_closure_of_state(nfa, state));
-    }
-
     // Collect all character symbols present
     let mut symbols: HashSet<char> = HashSet::new();
     for edges in nfa.transitions.values() {
@@ -94,59 +81,94 @@ pub fn remove_epsilon(nfa: &NFA) -> NFA {
         }
     }
 
-    // New transitions: initialize for every existing state
-    let mut new_transitions: HashMap<StateID, Vec<(TransitionLabel, StateID)>> =
-        HashMap::with_capacity(all_states.len());
-    for &s in &all_states {
-        new_transitions.insert(s, Vec::new());
-    }
+    // State mapping: epsilon-closure -> new state ID
+    let mut state_map: HashMap<Vec<StateID>, StateID> = HashMap::new();
+    let mut next_id = 0;
 
-    // For each state s and each symbol c:
-    // target = epsilon_closure(move(epsilon_closure(s), c))
-    for &s in &all_states {
-        let closure_s = closures.get(&s).expect("closure missing");
+    // Queue for BFS through reachable closure-sets
+    let mut queue: VecDeque<HashSet<StateID>> = VecDeque::new();
+    let mut new_transitions: HashMap<StateID, Vec<(TransitionLabel, StateID)>> = HashMap::new();
+
+    // Start with epsilon-closure of original start state
+    let start_closure = epsilon_closure_of_state(nfa, nfa.start);
+    let mut start_closure_sorted: Vec<StateID> = start_closure.iter().copied().collect();
+    start_closure_sorted.sort_unstable();
+
+    let new_start = next_id;
+    state_map.insert(start_closure_sorted.clone(), new_start);
+    new_transitions.insert(new_start, Vec::new());
+    next_id += 1;
+
+    queue.push_back(start_closure);
+
+    // BFS to discover reachable states
+    while let Some(current_closure) = queue.pop_front() {
+        let mut current_sorted: Vec<StateID> = current_closure.iter().copied().collect();
+        current_sorted.sort_unstable();
+        let current_id = *state_map.get(&current_sorted).unwrap();
+
+        // Track transitions by character to deduplicate
+        let mut transitions_by_char: HashMap<char, HashSet<StateID>> = HashMap::new();
 
         for &c in &symbols {
-            let moved = move_on_char(nfa, closure_s, c);
+            // Move on character c from current closure
+            let moved = move_on_char(nfa, &current_closure, c);
             if moved.is_empty() {
                 continue;
             }
-            let moved_closure = epsilon_closure_of_set(nfa, &moved);
 
-            for &t in &moved_closure {
+            // Compute epsilon-closure of moved states
+            let target_closure = epsilon_closure_of_set(nfa, &moved);
+            let mut target_sorted: Vec<StateID> = target_closure.iter().copied().collect();
+            target_sorted.sort_unstable();
+
+            // Get or create target state ID
+            let target_id = if let Some(&id) = state_map.get(&target_sorted) {
+                id
+            } else {
+                let id = next_id;
+                state_map.insert(target_sorted.clone(), id);
+                new_transitions.insert(id, Vec::new());
+                next_id += 1;
+                queue.push_back(target_closure);
+                id
+            };
+
+            // Deduplicate: only add if not already present for this character
+            transitions_by_char
+                .entry(c)
+                .or_insert_with(HashSet::new)
+                .insert(target_id);
+        }
+
+        // Add deduplicated transitions
+        for (c, targets) in transitions_by_char {
+            for target in targets {
                 new_transitions
-                    .get_mut(&s)
+                    .get_mut(&current_id)
                     .unwrap()
-                    .push((TransitionLabel::Char(c), t));
+                    .push((TransitionLabel::Char(c), target));
             }
         }
     }
 
-    // Determine accepting states: any state whose closure contains ANY original accept state
+    // Determine accepting states: any state whose closure contains an original accept state
     let mut accepting_states: Vec<StateID> = Vec::new();
-    for &s in &all_states {
-        let closure_s = closures.get(&s).unwrap();
+    for (closure_sorted, &new_id) in &state_map {
+        let closure_set: HashSet<StateID> = closure_sorted.iter().copied().collect();
         if nfa
             .accept
             .iter()
-            .any(|orig_accept| closure_s.contains(orig_accept))
+            .any(|&orig_accept| closure_set.contains(&orig_accept))
         {
-            accepting_states.push(s);
+            accepting_states.push(new_id);
         }
     }
 
-    // Fallback: if we found no accepting states (should be rare), retain original accepts that still exist, else keep empty
-    if accepting_states.is_empty() {
-        accepting_states = nfa
-            .accept
-            .iter()
-            .cloned()
-            .filter(|a| all_states.contains(a))
-            .collect();
-    }
+    accepting_states.sort_unstable();
 
     NFA {
-        start: nfa.start,
+        start: new_start,
         accept: accepting_states,
         transitions: new_transitions,
     }
