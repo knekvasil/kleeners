@@ -1,5 +1,6 @@
 // nfa/thompson.rs
 use super::nfa::{TransitionLabel, NFA};
+use crate::nfa::renumber::renumber_dfs;
 use crate::regex::ast::RegexAST;
 
 pub struct Thompson {
@@ -32,7 +33,8 @@ impl Thompson {
         let frag = self.build(ast);
         self.nfa.start = frag.start;
         self.nfa.accept = vec![frag.accept];
-        self.nfa
+        // Renumber for cleaner output
+        renumber_dfs(&self.nfa)
     }
 
     fn build(&mut self, ast: &RegexAST) -> Fragment {

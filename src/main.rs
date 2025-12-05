@@ -10,11 +10,11 @@ use crate::pipeline::tests::full_pipeline;
 use crate::utils::dot::{dfa_to_dot, nfa_to_dot};
 
 fn main() {
-    let test_lang = "a*";
+    let test_lang = "(b+a(a+ba*b))*a";
 
     println!("--- Pipeline Language: '{}' ---", test_lang);
 
-    match full_pipeline("a*") {
+    match full_pipeline(test_lang) {
         Ok(out) => {
             println!("ε-NFA:");
             // println!("{:#?}", out.enfa);
@@ -31,11 +31,6 @@ fn main() {
             println!("\nMinimized DFA:");
             // println!("{:#?}", out.mindfa);
             println!("DOT for minimized DFA:\n{}", dfa_to_dot(&out.mindfa));
-
-            println!("\nAcceptance checks:");
-            for s in ["", "a", "aa", "b", "ab"] {
-                println!("  {:>2?}: {}", s, out.mindfa.accepts(s));
-            }
         }
         Err(e) => {
             eprintln!("Error: {}", e);
