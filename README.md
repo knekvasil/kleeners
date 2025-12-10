@@ -13,4 +13,4 @@ TODO:
 - [x] DFA
 - [x] DFA-Minimization
 - [ ] R.E Language
-- [ ] Visualization
+- [x] Visualization
